@@ -24,6 +24,135 @@ export interface DomainDb {
 }
 export const emptyDomain = (): DomainDb => ({ customers: [], jobs: [], requests: [], payments: [], reviews: [], seq: 0 });
 
+export function seedDomain(providerName: string): DomainDb {
+  const d = emptyDomain();
+
+  const c1: Customer = {
+    id: id(d, 'cust'),
+    name: 'Samuel Adebayo',
+    phone: '+2348031234567',
+    messageConsent: true,
+    createdAt: iso(Date.now() - 3 * DAY),
+  };
+  d.customers.push(c1);
+
+  const j1: RawJob = {
+    id: id(d, 'job'),
+    customerId: c1.id,
+    service: 'Backend work',
+    totalKobo: '30000000',
+    plan: 'DEPOSIT_BALANCE',
+    depositKobo: '15000000',
+    balanceDueAt: iso(Date.now() + 4 * DAY),
+    readyRule: 'AFTER_DEPOSIT',
+    notes: 'Phase 1 API integration and contract setup',
+    createdAt: iso(Date.now() - 25 * MIN),
+    cancelledAt: null,
+  };
+  d.jobs.push(j1);
+
+  const token1 = Math.random().toString(36).slice(2, 8);
+  const r1: PaymentRequest = {
+    id: id(d, 'req'),
+    jobId: j1.id,
+    kind: 'DEPOSIT',
+    amountKobo: '15000000',
+    status: 'SENT',
+    payLink: `https://paidar.example/p/${token1}`,
+    bankName: 'Wema Bank',
+    accountNumber: '7820147758',
+    accountName: providerName,
+    sentAt: iso(Date.now() - 22 * MIN),
+    expiresAt: iso(Date.now() + 38 * MIN),
+    scheduledFor: null,
+    paidAt: null,
+    createdAt: iso(Date.now() - 22 * MIN),
+  };
+  d.requests.push(r1);
+
+  const c2: Customer = {
+    id: id(d, 'cust'),
+    name: 'Fatima Bello',
+    phone: '+2348123456789',
+    messageConsent: true,
+    createdAt: iso(Date.now() - 5 * DAY),
+  };
+  d.customers.push(c2);
+
+  const j2: RawJob = {
+    id: id(d, 'job'),
+    customerId: c2.id,
+    service: 'Bespoke bridal robe',
+    totalKobo: '4500000',
+    plan: 'DEPOSIT_BALANCE',
+    depositKobo: '2000000',
+    balanceDueAt: iso(Date.now() + 2 * DAY),
+    readyRule: 'AFTER_DEPOSIT',
+    notes: 'Emerald green silk with lace cuffs',
+    createdAt: iso(Date.now() - 2 * DAY),
+    cancelledAt: null,
+  };
+  d.jobs.push(j2);
+
+  const p2: Payment = {
+    id: id(d, 'pay'),
+    jobId: j2.id,
+    requestId: null,
+    source: 'KORA_VERIFIED',
+    amountKobo: '2000000',
+    payerName: 'Fatima Bello',
+    payerBank: 'GTBank',
+    payerAccountMasked: '0123****89',
+    payerDetailsSimulated: true,
+    note: 'Initial deposit payment',
+    receivedAt: iso(Date.now() - 2 * 3600_000),
+    createdAt: iso(Date.now() - 2 * 3600_000),
+  };
+  d.payments.push(p2);
+
+  const c3: Customer = {
+    id: id(d, 'cust'),
+    name: 'Chidi Okafor',
+    phone: '+2347012345678',
+    messageConsent: true,
+    createdAt: iso(Date.now() - 10 * DAY),
+  };
+  d.customers.push(c3);
+
+  const j3: RawJob = {
+    id: id(d, 'job'),
+    customerId: c3.id,
+    service: 'Consultation & Strategy',
+    totalKobo: '8000000',
+    plan: 'FULL',
+    depositKobo: null,
+    balanceDueAt: null,
+    readyRule: 'AFTER_FULL',
+    notes: null,
+    createdAt: iso(Date.now() - 8 * DAY),
+    cancelledAt: null,
+  };
+  d.jobs.push(j3);
+
+  const p3: Payment = {
+    id: id(d, 'pay'),
+    jobId: j3.id,
+    requestId: null,
+    source: 'KORA_VERIFIED',
+    amountKobo: '8000000',
+    payerName: 'Chidi Okafor',
+    payerBank: 'Access Bank',
+    payerAccountMasked: '0098****12',
+    payerDetailsSimulated: false,
+    note: null,
+    receivedAt: iso(Date.now() - 4 * 3600_000),
+    createdAt: iso(Date.now() - 4 * 3600_000),
+  };
+  d.payments.push(p3);
+
+  return d;
+}
+
 /* ---------- http helpers ---------- */
 const rid = () => 'mock-' + Math.random().toString(36).slice(2, 8);
 export const json = (status: number, body: unknown) =>

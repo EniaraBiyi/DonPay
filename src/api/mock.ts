@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import type { Provider } from '../contract/contract';
-import { emptyDomain, fail, handleDomain, json } from './mockDomain';
+import { emptyDomain, fail, handleDomain, json, seedDomain } from './mockDomain';
 import type { DomainDb } from './mockDomain';
 
 const KEY = 'paidar.mock.v2';
@@ -67,7 +67,9 @@ export async function mockFetch(url: string, init: RequestInit): Promise<Respons
   if (method === 'POST' && path === '/api/auth/dev-login') {
     const name = String((body as { businessName?: string } | undefined)?.businessName ?? '').trim();
     if (!name) return fail(400, 'VALIDATION_ERROR', 'Invalid body.', { fieldErrors: { businessName: ['Enter a business name'] }, formErrors: [] });
-    if (db.provider?.businessName !== name) db.domain = emptyDomain();
+    if (db.provider?.businessName !== name || !db.domain || db.domain.jobs.length === 0) {
+      db.domain = seedDomain(name);
+    }
     db.provider = makeProvider(name, false);
     db.signedIn = true;
     db.tgRequestedAt = null;

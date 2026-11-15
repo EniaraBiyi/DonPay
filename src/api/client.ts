@@ -64,9 +64,28 @@ export async function api<T = unknown>(path: string, opts: Options<T> = {}): Pro
 
   let res: Response;
   try {
-    res = MOCK ? await mockFetch(url, init) : await fetch(url, init);
+    if (MOCK) {
+      res = await mockFetch(url, init);
+    } else {
+      res = await fetch(url, init);
+      // Auto-fallback: if calling a relative /api route on a static host returns 405 (Method Not Allowed),
+      // 404 (Not Found), or returns HTML (SPA rewrite fallback on missing backend), seamlessly use mockFetch.
+      const contentType = res.headers.get('content-type') ?? '';
+      if (!API_URL && (res.status === 405 || res.status === 404 || (res.status === 200 && contentType.includes('text/html')))) {
+        console.info(`[api] No live backend responding at ${path} (status ${res.status}). Using local in-browser mock engine.`);
+        res = await mockFetch(url, init);
+      }
+    }
   } catch {
-    throw new ApiRequestError(0, 'NETWORK', 'No connection.');
+    if (!API_URL) {
+      try {
+        res = await mockFetch(url, init);
+      } catch {
+        throw new ApiRequestError(0, 'NETWORK', 'No connection.');
+      }
+    } else {
+      throw new ApiRequestError(0, 'NETWORK', 'No connection.');
+    }
   }
 
   const requestId = res.headers.get('x-request-id') ?? undefined;
@@ -97,9 +116,28 @@ export async function apiDownload(
   const url = buildUrl(path, query);
   let res: Response;
   try {
-    res = MOCK ? await mockFetch(url, init) : await fetch(url, init);
+    if (MOCK) {
+      res = await mockFetch(url, init);
+    } else {
+      res = await fetch(url, init);
+      // Auto-fallback: if calling a relative /api route on a static host returns 405 (Method Not Allowed),
+      // 404 (Not Found), or returns HTML (SPA rewrite fallback on missing backend), seamlessly use mockFetch.
+      const contentType = res.headers.get('content-type') ?? '';
+      if (!API_URL && (res.status === 405 || res.status === 404 || (res.status === 200 && contentType.includes('text/html')))) {
+        console.info(`[api] No live backend responding at ${path} (status ${res.status}). Using local in-browser mock engine.`);
+        res = await mockFetch(url, init);
+      }
+    }
   } catch {
-    throw new ApiRequestError(0, 'NETWORK', 'No connection.');
+    if (!API_URL) {
+      try {
+        res = await mockFetch(url, init);
+      } catch {
+        throw new ApiRequestError(0, 'NETWORK', 'No connection.');
+      }
+    } else {
+      throw new ApiRequestError(0, 'NETWORK', 'No connection.');
+    }
   }
   const requestId = res.headers.get('x-request-id') ?? undefined;
   if (!res.ok) {

@@ -8,7 +8,7 @@ import { authApi } from '../api/endpoints';
 import { ME_KEY, useAuth } from '../auth/AuthProvider';
 import type { Provider } from '../contract/contract';
 import { useDocumentTitle } from '../lib/hooks';
-import { isOnboarded } from '../lib/onboarding';
+import { isOnboarded, markOnboarded } from '../lib/onboarding';
 import { LogoMark } from '../ui/Logo';
 import { RiskBanner } from '../shell/Banners';
 import { Banner } from '../ui/primitives';
@@ -82,6 +82,7 @@ export function AuthPage() {
     setBusy(true);
     try {
       const r = await authApi.devLogin(finalName);
+      markOnboarded(r.provider.id);
       finish(r.provider);
     } catch (error) {
       setErr(
